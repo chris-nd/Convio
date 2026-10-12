@@ -1,135 +1,62 @@
-"Module de test pour le convertisseur d'unités"
+"Tests de convert_length"
 
 import pytest
 
 from unit_converter.length import convert_length
 
 
-# Tester les cas normaux
-@pytest.mark.parametrize("value, from_unit, to_unit, expected_result", [
+@pytest.mark.parametrize("value, from_unit, to_unit, expected", [
     (1, "dm", "cm", 10),
     (1, "m", "cm", 100),
-    (5, "km", "m", 5000)
-])
-def test_convert_length(value, from_unit, to_unit, expected_result):
-    """
-    Teste la conversion de longueur d'un unité à une autre.
-
-    :param value: La valeur à convertir
-    :param from_unit: L'unité de départ
-    :param to_unit: L'unité d'arrivée
-    :param expected_result: Le résultat attendu
-    """
-    assert convert_length(value, from_unit, to_unit) == pytest.approx(expected_result)
-
-
-@pytest.mark.parametrize("value, from_unit, to_unit, expected_result", [
+    (5, "km", "m", 5000),
     (1.5, "m", "cm", 150),
     (2.5, "cm", "m", 0.025),
-    (0.5, "m", "km", 0.0005)
-])
-def test_convert_floating_length(value, from_unit, to_unit, expected_result):
-    """
-    Teste la conversion de longueur avec une valeur flottante.
-    """
-    assert convert_length(value, from_unit, to_unit) == pytest.approx(expected_result)
-
-
-@pytest.mark.parametrize("value, from_unit, to_unit, expected_result", [
+    (0.5, "m", "km", 0.0005),
     (1, "M", "CM", 100),
     (1, "m", "Km", 0.001),
-    (1, "cM", "dm", 0.1)
+    (1, "cM", "dm", 0.1),
+    (0, "m", "cm", 0),
+    (0.1, "m", "m", 0.1),
+    (1e303, "mm", "mm", 1e303),  # pas de débordement intermédiaire
 ])
-def test_convert_length_case_unit(value, from_unit, to_unit, expected_result):
+def test_convert_length_valid(value, from_unit, to_unit, expected):
     """
-    Teste la conversion de longueur avec des unités de casse différente.
+    Teste la conversion d'une longueur valide.
     """
-    assert convert_length(value, from_unit, to_unit) == pytest.approx(expected_result)
+    assert convert_length(value, from_unit, to_unit) == pytest.approx(expected)
 
 
-@pytest.mark.parametrize("value, from_unit, to_unit, expected_result", [
-    (1e308, "km", "mm", float('inf')),
-    ("10", "m", "cm", 1000)
+# Règles propres à la longueur
+@pytest.mark.parametrize("value, from_unit, to_unit, message", [
+    (-1, "m", "cm", "négative"),
+    (1e308, "km", "mm", "trop grand"),  # le résultat déborde
 ])
-def test_convert_length_other_value_type(value, from_unit, to_unit, expected_result):
+def test_convert_length_rules(value, from_unit, to_unit, message):
     """
-    Teste la conversion de longueur avec un type de valeur différent.
+    Teste les règles propres à la conversion de longueur.
     """
-    assert convert_length(value, from_unit, to_unit) == pytest.approx(expected_result)
-
-
-# Tester les cas limites
-def test_convert_length_zero():
-    """
-    Teste la conversion de longueur avec une valeur de zéro.
-    """
-    assert convert_length(0, "m", "cm") == 0
-
-
-def test_convert_length_negative():
-    """
-    Teste la conversion de longueur avec une valeur négative.
-    """
-    with pytest.raises(ValueError, match="négative"):
-        convert_length(-1, "m", "cm")
-
-
-def test_convert_length_same_unit():
-    """
-    Teste la conversion de longueur avec les mêmes unités.
-    """
-    assert convert_length(1, "m", "m") == 1
-
-
-# Tester les cas d'erreur
-@pytest.mark.parametrize("value, from_unit, to_unit", [
-    (1, "kg", "cm"),
-    (1, "m", "cl"),
-    (1, "m", "foo")
-])
-def test_convert_length_invalid_or_unknown_unit(value, from_unit, to_unit):
-    """
-    Teste la conversion de longueur avec des unités invalides ou inconnues.
-    """
-    with pytest.raises(ValueError, match="incompatible"):
+    with pytest.raises(ValueError, match=message):
         convert_length(value, from_unit, to_unit)
 
 
-@pytest.mark.parametrize("value, from_unit, to_unit", [
-    (None, "m", "cm"),
-    (None, "mm", "dm")
+# Câblage : prouve que convert_length appelle bien les validateurs partagés
+@pytest.mark.parametrize("value, from_unit, to_unit, message", [
+    (float("nan"), "m", "cm", "NaN"),
+    (1, "m", "foo", "incompatible"),
+    (1, "foo", "m", "incompatible"),
 ])
-def test_convert_length_none_type(value, from_unit, to_unit):
+def test_convert_length_uses_validators(value, from_unit, to_unit, message):
     """
-    Teste la conversion de longueur avec un type invalide.
+    Teste l'appel aux validateurs partagés.
     """
-    with pytest.raises(TypeError, match="must be a string or a real number"):
+    with pytest.raises(ValueError, match=message):
         convert_length(value, from_unit, to_unit)
 
 
-@pytest.mark.parametrize("value, from_unit, to_unit", [
-    ("value", "m", "cm"),
-    ("un", "m", "cm")
-])
-def test_convert_length_invalid_type(value, from_unit, to_unit):
+# Ordre de validation : la valeur est contrôlée avant les unités
+def test_convert_length_validates_value_before_units():
     """
-    Teste la conversion de longueur avec un type invalide.
+    Teste que la valeur est contrôlée avant les unités.
     """
-    with pytest.raises(ValueError, match="could not convert string to float"):
-        convert_length(value, from_unit, to_unit)
-
-
-def test_convert_length_infinite_value():
-    """
-    Teste la conversion de longueur avec une valeur infinie.
-    """
-    with pytest.raises(ValueError, match="infinie"):
-        convert_length(float('inf'), "m", "cm")
-
-
-def test_convert_length_nan_value():
-    """
-    Teste la conversion de longueur avec une valeur NaN.
-    """
-    with pytest.raises(ValueError, match="NaN"):
-        convert_length(float('nan'), "m", "cm")
+    with pytest.raises(TypeError, match="invalide"):
+        convert_length("x", "foo", "m")
