@@ -1,41 +1,11 @@
-"Module de convertisseur de longueur"
+"Convertisseur d'unités de longueur"
 
 import math
-from typing import Any
 
-LENGTH = {
-    "km": 1,
-    "m": 1000,
-    "dm": 10000,
-    "cm": 100000,
-    "mm": 1000000
-}
+from unit_converter.validation import get_factor, validate_number
 
-# Fonctions utilitaires
-
-
-def validate_value_and_type(value: Any) -> float:
-    """
-    Vérifie si une valeur est d'un type valide.
-
-    :param value: La valeur à vérifier.
-    :raise TypeError: Si le type de la valeur n'est pas supporté.
-    :raise ValueError: Si la valeur est infinie.
-    :raise ValueError: Si la valeur est NaN.
-    :return: La valeur convertie.
-    :rtype: float
-    """
-
-    if not isinstance(value, float):
-            return float(value)
-
-    if math.isnan(value):
-        raise ValueError("La valeur ne doit pas être NaN")
-
-    if math.isinf(value):
-        raise ValueError("La valeur ne doit pas être infinie")
-
-    return value
+# Nombre d'unités contenues dans 1 km (pivot : le kilomètre)
+UNITS_PER_KM = {"km": 1, "m": 1_000, "dm": 10_000, "cm": 100_000, "mm": 1_000_000}
 
 
 def convert_length(value: float, from_unit: str, to_unit: str) -> float:
@@ -53,15 +23,16 @@ def convert_length(value: float, from_unit: str, to_unit: str) -> float:
     :return: La valeur convertie.
     :rtype: float
     """
-    from_unit = from_unit.lower()
-    to_unit = to_unit.lower()
+    number = validate_number(value)
+    from_factor = get_factor(from_unit, UNITS_PER_KM)
+    to_factor = get_factor(to_unit, UNITS_PER_KM)
 
-    value = validate_value_and_type(value)
-
-    if from_unit not in LENGTH or to_unit not in LENGTH:
-        raise ValueError("Une des unités est incompatible")
-
-    if value < 0:
+    if number < 0:
         raise ValueError("La valeur ne doit pas être négative")
 
-    return value * LENGTH[to_unit] / LENGTH[from_unit]
+    result = number * (to_factor / from_factor)
+
+    if math.isinf(result):
+        raise ValueError("Résultat trop grand pour être représenté")
+
+    return result
