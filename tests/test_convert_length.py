@@ -23,9 +23,7 @@ from unit_converter.length import convert_length
     ],
 )
 def test_convert_length_valid(value, from_unit, to_unit, expected):
-    """
-    Teste la conversion d'une longueur valide.
-    """
+    "Teste la conversion d'une longueur valide."
     assert convert_length(value, from_unit, to_unit) == pytest.approx(expected)
 
 
@@ -38,9 +36,7 @@ def test_convert_length_valid(value, from_unit, to_unit, expected):
     ],
 )
 def test_convert_length_rules(value, from_unit, to_unit, message):
-    """
-    Teste les règles propres à la conversion de longueur.
-    """
+    "Teste les règles propres à la conversion de longueur."
     with pytest.raises(ValueError, match=message):
         convert_length(value, from_unit, to_unit)
 
@@ -55,17 +51,13 @@ def test_convert_length_rules(value, from_unit, to_unit, message):
     ],
 )
 def test_convert_length_uses_validators(value, from_unit, to_unit, message):
-    """
-    Teste l'appel aux validateurs partagés.
-    """
+    "Teste l'appel aux validateurs partagés."
     with pytest.raises(ValueError, match=message):
         convert_length(value, from_unit, to_unit)
 
 
 # Ordre de validation : la valeur est contrôlée avant les unités
 def test_convert_length_validates_value_before_units():
-    """
-    Teste que la valeur est contrôlée avant les unités.
-    """
-    with pytest.raises(TypeError, match="invalide"):
-        convert_length("x", "foo", "m")
+    "Teste que la valeur est contrôlée avant les unités."
+    with pytest.raises(ValueError, match="invalide"):
+        convert_length("x", "foo", "m")  # type: ignore
