@@ -11,7 +11,7 @@ def validate_number(value: Any) -> float:
 
     :param value: La valeur à valider.
     :type value: Any
-    :raise TypeError: Si la valeur est d'un type invalide.
+    :raise ValueError: Si la valeur est d'un type invalide.
     :raise ValueError: Si la valeur est trop grande.
     :raise ValueError: Si la valeur est NaN.
     :raise ValueError: Si la valeur est infinie.
@@ -19,7 +19,8 @@ def validate_number(value: Any) -> float:
     :rtype: float
     """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise TypeError(f"Valeur invalide : {value!r}")
+        raise ValueError(f"Valeur invalide : {value!r}")  # noqa: TRY004
+
     try:
         number = float(value)
     except OverflowError as exc:  # entier gigantesque, ex. 10**400
@@ -46,7 +47,9 @@ def get_factor(unit: Any, factors: Mapping[str, float]) -> float:
     :return: Le facteur de l'unité.
     :rtype: float
     """
-    if not isinstance(unit, str) or unit.lower() not in factors:
+    if (
+        not isinstance(unit, str) or unit.lower() not in factors
+    ):  # None est déjà couvert ici
         raise ValueError(
             f"Unité incompatible : {unit!r} (acceptées : {', '.join(factors)})"
         )
