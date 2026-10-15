@@ -17,9 +17,7 @@ FACTORS = {"a": 1, "b": 10}  # table minuscule, indépendante des vraies unités
     ],
 )
 def test_validate_number_valid(value, expected):
-    """
-    Teste la validation d'un nombre valide.
-    """
+    "Teste la validation d'un nombre valide."
     result = validate_number(value)
     assert isinstance(result, float)
     assert result == pytest.approx(expected)
@@ -38,34 +36,25 @@ def test_validate_number_valid(value, expected):
     ],
 )
 def test_validate_number_invalid(value, message):
-    """
-    Teste la validation d'un nombre invalide.
-    """
+    "Teste la validation d'un nombre invalide."
     with pytest.raises((ValueError, TypeError), match=message):
         validate_number(value)
 
 
 @pytest.mark.parametrize("unit, expected", [("a", 1), ("B", 10)])
 def test_get_factor_valid(unit, expected):
-    """
-    Teste la récupération du facteur pour une unité valide.
-    """
+    "Teste la récupération du facteur pour une unité valide."
     assert get_factor(unit, FACTORS) == expected
 
 
 @pytest.mark.parametrize("unit", ["c", "", None, 5])
 def test_get_factor_invalid(unit):
-    """
-    Teste la récupération du facteur pour une unité invalide.
-    """
+    "Teste la récupération du facteur pour une unité invalide."
     with pytest.raises(ValueError, match="incompatible"):
         get_factor(unit, FACTORS)
 
 
 def test_get_factor_message_lists_accepted_units():
-    """
-    Teste le message d'erreur lors de la récupération du
-    facteur pour une unité non acceptée.
-    """
+    "Teste le message d'erreur lors de la récupération du facteur pour une unité non acceptée."
     with pytest.raises(ValueError, match="acceptées : a, b"):
         get_factor("c", FACTORS)
