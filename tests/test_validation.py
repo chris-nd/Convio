@@ -14,6 +14,8 @@ FACTORS = {"a": 1, "b": 10}  # table minuscule, indépendante des vraies unités
         (1.5, 1.5),
         (10**6, 1e6),
         (-3, -3.0),  # le signe n'est pas son affaire : règle propre à chaque famille
+        (1e3, 1000.0),
+        (.5, 0.5)
     ],
 )
 def test_validate_number_valid(value, expected):
