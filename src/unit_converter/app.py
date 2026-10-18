@@ -32,7 +32,7 @@ def index():
             parse_unit(from_unit, "de départ"),
             parse_unit(to_unit, "d'arrivée"),
         )
-    except (ValueError, TypeError) as exc:
+    except ValueError as exc:
         return render_template("index.html", error=str(exc), **context), 400
 
     return render_template("index.html", result=result, **context)
