@@ -11,9 +11,22 @@ def client():
     return app.test_client()
 
 
+def test_root_redirects_to_length(client):
+    "Teste la redirection de la racine vers la conversion de longueur."
+    response = client.get("/")
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/length")
+
+
+@pytest.mark.parametrize("path", ["/unknown", "/Length"])
+def test_unknown_family_returns_404(client, path):
+    "Teste que les familles inconnues renvoient une erreur 404."
+    assert client.get(path).status_code == 404
+
+
 def test_blank_form(client):
     "Teste le formulaire vide."
-    response = client.get("/")
+    response = client.get("/length")
     assert response.status_code == 200
 
 
@@ -26,7 +39,7 @@ def test_blank_form(client):
 )
 def test_valid_conversion(client, query, expected):
     "Teste les conversions valides."
-    response = client.get(f"/?{query}")
+    response = client.get(f"/length?{query}")
     assert response.status_code == 200
     assert expected in response.get_data(as_text=True)
 
@@ -45,12 +58,12 @@ def test_valid_conversion(client, query, expected):
 )
 def test_invalid_input_returns_400(client, query):
     "Teste les entrées invalides."
-    assert client.get(f"/?{query}").status_code == 400
+    assert client.get(f"/length?{query}").status_code == 400
 
 
 def test_user_input_is_escaped(client):
     "Teste que les entrées de l'utilisateur sont échappées."
-    response = client.get("/?value=1&from=%3Cscript%3Ealert(1)%3C/script%3E&to=m")
+    response = client.get("/length?value=1&from=%3Cscript%3Ealert(1)%3C/script%3E&to=m")
     body = response.get_data(as_text=True)
     assert "<script>alert" not in body
     assert "&lt;script&gt;" in body
